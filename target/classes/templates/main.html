@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>天际社区</title>
+</head>
+<body>
+    <!--帖子主体-->
+    <ul>
+        <li th:each="discuss:${page.list}">
+            <img th:src="@{/static/img/${discuss.user.herderUrl}}"/>
+            <div>
+               <h6>
+                   <a href="#" th:text="${discuss.title}"></a>
+                   <span th:if="${discuss.type}==1">置顶</span>
+                   <span th:if="${discuss.status}==1">精华</span>
+               </h6>
+            </div>
+            <div>
+                <u th:text="${discuss.user.username}"></u>发布于<b th:text="${discuss.create_time}"></b>
+                <ul>
+                    <li>赞 11</li>
+                    <li>|</li>
+                    <li>回帖 7</li>
+                </ul>
+            </div>
+        </li>
+    </ul>
+    <!--分页-->
+    <nav>
+        <ul>
+            <li style="display: inline;float: left">
+                <a th:href="@{/1}" >首页</a>
+            </li>
+            <li style="display: inline;float: left">
+                <a th:href="@{'/'+${page.prePage}}">上一页</a>
+            </li>
+            <li style="display: inline;float: left" th:each="num:${page.navigatepageNums}">
+                <a th:href="@{'/'+${num}}" th:text="${num}"></a>
+            </li>
+            <li style="display: inline;float: left">
+                <a th:href="@{'/'+${page.nextPage}}">下一页</a>
+            </li>
+            <li style="display: inline;float: left">
+                <a th:href="@{'/'+${page.pages}}">尾页</a>
+            </li>
+        </ul>
+    </nav>
+</body>
+</html>
