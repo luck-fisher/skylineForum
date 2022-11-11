@@ -13,6 +13,19 @@
         insert into user(<include refid="addUserColumn"></include> )
         value(#{username},#{password},#{salt},#{email},#{type},#{status},#{activationCode},#{headerUrl},#{createTime})
     </insert>
+    <update id="updateStatus">
+        update user set status = #{status}
+    </update>
+    <update id="updateHeaderUrl">
+        update user
+        set header_url = #{headerUrl}
+        where id = #{userId}
+    </update>
+    <update id="updatePassword">
+        update user
+        set password = #{password}
+        where id = #{id}
+    </update>
 
     <!--    User getUserById(Integer id);-->
     <select id="getUserById" resultType="User">

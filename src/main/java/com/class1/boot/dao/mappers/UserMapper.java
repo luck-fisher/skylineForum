@@ -12,4 +12,10 @@ public interface UserMapper {
     User getUserByEmail(String email);
 
     void addUser(User user);
+
+    void updateStatus(Integer status);
+
+    int updateHeaderUrl(int userId, String headerUrl);
+
+    int updatePassword(Integer id, String password);
 }

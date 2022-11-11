@@ -9,8 +9,9 @@ public class DiscussPost {
     private String content;
     private Integer type;
     private Integer status;
-    private Date creatTime;
+    private Date createTime;
     private Double score;
+    private Integer commentCount;
 
     @Override
     public String toString() {
@@ -21,9 +22,18 @@ public class DiscussPost {
                 ", content='" + content + '\'' +
                 ", type=" + type +
                 ", status=" + status +
-                ", creatTime=" + creatTime +
+                ", createTime=" + createTime +
                 ", score=" + score +
+                ", commentCount=" + commentCount +
                 '}';
+    }
+
+    public Integer getCommentCount() {
+        return commentCount;
+    }
+
+    public void setCommentCount(Integer commentCount) {
+        this.commentCount = commentCount;
     }
 
     public DiscussPost() {
@@ -77,12 +87,12 @@ public class DiscussPost {
         this.status = status;
     }
 
-    public Date getCreatTime() {
-        return creatTime;
+    public Date getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatTime(Date creatTime) {
-        this.creatTime = creatTime;
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
     }
 
     public Double getScore() {
@@ -93,14 +103,15 @@ public class DiscussPost {
         this.score = score;
     }
 
-    public DiscussPost(Integer id, Integer userId, String title, String content, Integer type, Integer status, Date creatTime, Double score) {
+    public DiscussPost(Integer id, Integer userId, String title, String content, Integer type, Integer status, Date createTime, Double score, Integer commentCount) {
         this.id = id;
         this.userId = userId;
         this.title = title;
         this.content = content;
         this.type = type;
         this.status = status;
-        this.creatTime = creatTime;
+        this.createTime = createTime;
         this.score = score;
+        this.commentCount = commentCount;
     }
 }

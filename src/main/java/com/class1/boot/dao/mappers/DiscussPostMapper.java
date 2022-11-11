@@ -12,4 +12,10 @@ import java.util.Map;
 public interface DiscussPostMapper {
     @MapKey("discussPost")
     List<Map<String, Object>> getAllDiscussPost(@Param("userId") Integer userId);
+
+    int insertDiscussPost(DiscussPost discussPost);
+
+    DiscussPost getDiscussPostById(Integer id);
+
+    int updateCommentCount(Integer id,Integer commentCount);
 }
