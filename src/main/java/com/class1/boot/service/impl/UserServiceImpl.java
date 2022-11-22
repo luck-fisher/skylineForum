@@ -198,6 +198,11 @@ public class UserServiceImpl implements UserService, CommunityConstant {
     }
 
     @Override
+    public User getUserByName(String toName) {
+        return userMapper.getUserByUsername(toName);
+    }
+
+    @Override
     public LoginTicket getLoginTicket(String ticket) {
         return loginTicketMapper.getByTicket(ticket);
     }

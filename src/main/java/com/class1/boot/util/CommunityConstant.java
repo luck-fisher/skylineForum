@@ -26,4 +26,13 @@ public interface CommunityConstant {
      */
     int REMEMBER_EXPIRED_TIME = 3600*24*100;
 
+    /**
+     * 已阅读过的消息
+     */
+    int READ_LETTER = 0;
+
+    /**
+     * 删除的消息
+     */
+    int DELETE_LETTER = 2;
 }

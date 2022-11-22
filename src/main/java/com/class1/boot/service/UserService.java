@@ -61,4 +61,6 @@ public interface UserService {
     Map<String,Object> checkPassword(User user,String oldPassword,String newPassword);
 
     int updatePassword(Integer id, String password);
+
+    User getUserByName(String toName);
 }

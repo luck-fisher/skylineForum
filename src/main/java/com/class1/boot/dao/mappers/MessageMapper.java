@@ -16,7 +16,14 @@ public interface MessageMapper {
 
     List<Message> getAllLetter(String conversationId);
 
-    int getLetterRows(String conversationId,Integer status);
+    int getLetterRows(String conversationId);
+
+    int getNewLetter(String conversationId,Integer userId);
+
+    int updateStatus(List<Integer> ids,String conversationId,Integer status);
+
+    int addMessage(Message message);
+
 
 
 }

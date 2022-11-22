@@ -35,8 +35,6 @@ public class DiscussPostController{
     @PostMapping("/add")
     @ResponseBody
     public String addPost(String title,String content){
-        System.out.println(title);
-        System.out.println(content);
         User user = hostHolder.getUser();
         if(user==null){
             return CommunityUtil.getJsonString(403,"您还没有登录哦！");
