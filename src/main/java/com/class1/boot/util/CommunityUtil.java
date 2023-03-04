@@ -1,12 +1,15 @@
 package com.class1.boot.util;
 
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.DigestUtils;
 
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * @author hua'wei
+ */
 public class CommunityUtil {
     //生成随机字符串
     public static String getId(){
@@ -34,7 +37,7 @@ public class CommunityUtil {
         return json.toJSONString();
     }
 
-    public static String getJsonString(int code, String msg){
+    public static String    getJsonString(int code, String msg){
         return getJsonString(code,msg,null);
     }
 

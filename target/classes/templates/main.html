@@ -45,7 +45,7 @@
 									<img th:src="${loginUser.headerUrl}" class="rounded-circle" style="width:30px;"/>
 								</a>
 								<div class="dropdown-menu" aria-labelledby="navbarDropdown" th:if="${loginUser!=null}">
-									<a class="dropdown-item text-center" >个人主页</a>
+									<a class="dropdown-item text-center" th:href="@{|/user/profile/${loginUser.id}|}" >个人主页</a>
 									<a class="dropdown-item text-center" th:href="@{/user/setting}" >账号设置</a>
 									<a class="dropdown-item text-center" th:href="@{/logout}">退出登录</a>
 									<div class="dropdown-divider"></div>
@@ -136,7 +136,7 @@
 							<div class="text-muted font-size-12">
 								<u class="mr-3" th:utext="${map.user.username}"></u> 发布于 <b th:text="${map.discussPost.createTime}" ></b>
 								<ul class="d-inline float-right">
-									<li class="d-inline ml-2">赞 <span th:text="11">11</span></li>
+									<li class="d-inline ml-2">赞 <span th:text="${map.likeCount}">11</span></li>
 									<li class="d-inline ml-2">|</li>
 									<li class="d-inline ml-2">回帖 <span th:text="${map.discussPost.commentCount}">7</span></li>
 								</ul>

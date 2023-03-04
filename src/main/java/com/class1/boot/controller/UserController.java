@@ -1,15 +1,21 @@
 package com.class1.boot.controller;
 
+import cn.hutool.core.convert.ConverterRegistry;
 import com.class1.boot.annotation.LoginRequiredAnnotation;
+import com.class1.boot.pojo.Comment;
+import com.class1.boot.pojo.DiscussPost;
 import com.class1.boot.pojo.User;
-import com.class1.boot.service.UserService;
+import com.class1.boot.service.*;
+import com.class1.boot.util.CommunityConstant;
 import com.class1.boot.util.CommunityUtil;
 import com.class1.boot.util.HostHolder;
+import com.github.pagehelper.PageInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,7 +33,7 @@ import java.util.Map;
 
 @Controller
 @RequestMapping("/user")
-public class UserController {
+public class UserController implements CommunityConstant {
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     @Value("${SkylineForum.path.upload}")
@@ -44,6 +50,18 @@ public class UserController {
 
     @Autowired
     private HostHolder hostHolder;
+
+    @Autowired
+    private LikeService likeService;
+
+    @Autowired
+    private FollowService followService;
+
+    @Autowired
+    private CommentService commentService;
+
+    @Autowired
+    private DiscussPostService discussPostService;
 
     @LoginRequiredAnnotation
     @GetMapping("/setting")
@@ -111,7 +129,10 @@ public class UserController {
             return "site/setting";
         }
     }
-    //http:localhost:8080/SkylineForum/user/password/{id}/{加密的password}
+
+    /**
+     * http:localhost:8080/SkylineForum/user/password/{id}/{加密的password}
+     */
     @GetMapping("/password/{id}/{password}")
     public String setPassword(@PathVariable("id") Integer id, @PathVariable("password") String password,Model model){
         int result = userService.updatePassword(id, password);
@@ -123,5 +144,47 @@ public class UserController {
             model.addAttribute("target","/login");
         }
         return "site/operate-result";
+    }
+
+    @GetMapping("/profile/{userId}")
+    public String getProfile(@PathVariable("userId") Integer userId,Model model){
+        User user = userService.getUserById(userId);
+        if(user==null){
+            throw new IllegalArgumentException("目标用户不存在");
+        }
+        //查询用户信息
+        model.addAttribute("user",user);
+        //点赞个数
+        int userLikeCount = likeService.getUserLikeCount(userId);
+        model.addAttribute("userLikeCount",userLikeCount);
+        //被关注人数
+        Long followerCount = followService.getFollowerCount(ENTITY_USER, userId);
+        model.addAttribute("followerCount",followerCount);
+        //关注人数
+        Long followeeCount = followService.getFolloweeCount(userId, ENTITY_USER);
+        model.addAttribute("followeeCount",followeeCount);
+        //登录用户对当前用户的关注状态
+        Boolean followStatus = hostHolder.getUser() != null ? followService.getFollowStatus(hostHolder.getUser().getId(), ENTITY_USER, userId) :false;
+        model.addAttribute("followStatus",followStatus);
+        return "site/profile";
+    }
+
+    @GetMapping("/profile/reply/{userId}")
+    public String getMyReply(@PathVariable("userId") Integer userId,Model model,Integer pageNum){
+        ConverterRegistry converterRegistry = ConverterRegistry.getInstance();
+        if(pageNum==null){
+            pageNum = 1;
+        }
+        PageInfo<Map<String, Object>> pageInfo = commentService.getUserAllComment(userId, pageNum);
+        for (Map<String,Object> map:pageInfo.getList()) {
+            Comment comment = converterRegistry.convert(Comment.class, map);
+            DiscussPost post = discussPostService.getDiscussPostById(comment.getEntityId());
+            map.clear();
+            map.put("comment",comment);
+            map.put("post",post);
+        }
+        model.addAttribute("page",pageInfo);
+        model.addAttribute("userId",userId);
+        return "site/my-reply";
     }
 }

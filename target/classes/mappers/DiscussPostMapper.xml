@@ -31,4 +31,8 @@
         from discuss_post
         where id = #{id}
     </select>
+    <select id="getDiscussPosts" resultType="com.class1.boot.pojo.DiscussPost">
+        select <include refid="discussPostAllColumn"></include>
+        from discuss_post
+    </select>
 </mapper>

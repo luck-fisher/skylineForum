@@ -66,4 +66,34 @@ public interface MessageService {
      * @return 添加的数量
      */
     int addMessage(Message message);
+
+    /**
+     * 得到某个主题系统通知数量
+     * @param topic 主题
+     * @param userId 当前用户的id
+     * @return 某个主题系统通知数量
+     */
+    int getNoticeMessageCount(String topic,Integer userId);
+    /**
+     * 得到未读系统通知的数量
+     * @param topic 主题，未传入则为全部
+     * @param userId 当前用户id
+     * @return 未读系统通知的数量
+     */
+    int getNewNoticeMessageCount(String topic,Integer userId);
+    /**
+     * 得到某一个主题发送的最后一条系统通知
+     * @param topic 主题
+     * @param userId 当前用户id
+     * @return 某一个主题发送的最后一条系统通知
+     */
+    Message getLastNoticeMessage(String topic,Integer userId);
+
+    /**
+     * 得到某一个主题的全部系统通知
+     * @param topic 主题
+     * @param userId 当前用户的id
+     * @return 某一个主题的全部系统通知
+     */
+    List<Message> getMessageByTopic(String topic,Integer userId);
 }

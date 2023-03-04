@@ -1,7 +1,5 @@
 package com.class1.boot.service.impl;
 
-import cn.hutool.core.convert.Convert;
-import com.class1.boot.dao.mappers.LoginTicketMapper;
 import com.class1.boot.dao.mappers.UserMapper;
 import com.class1.boot.pojo.LoginTicket;
 import com.class1.boot.pojo.User;
@@ -9,9 +7,11 @@ import com.class1.boot.service.UserService;
 import com.class1.boot.util.CommunityConstant;
 import com.class1.boot.util.CommunityUtil;
 import com.class1.boot.util.MailClient;
+import com.class1.boot.util.RedisKeyUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -20,9 +20,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class UserServiceImpl implements UserService, CommunityConstant {
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @Autowired
     private UserMapper userMapper;
@@ -33,8 +36,6 @@ public class UserServiceImpl implements UserService, CommunityConstant {
     @Autowired
     private TemplateEngine templateEngine;
 
-    @Autowired
-    private LoginTicketMapper loginTicketMapper;
     @Value("${SkylineForum.path.domain}")
     private String domain;
 
@@ -43,7 +44,11 @@ public class UserServiceImpl implements UserService, CommunityConstant {
 
     @Override
     public User getUserById(Integer id) {
-        return userMapper.getUserById(id);
+        User user = getCache(id);
+        if (user==null){
+            user = getFromDb(id);
+        }
+        return user;
     }
 
     @Override
@@ -107,6 +112,7 @@ public class UserServiceImpl implements UserService, CommunityConstant {
         if(user.getStatus()==1){
             return ACTIVATION_REPEAT;
         }else if(user.getActivationCode().equals(code)){
+            clearCache(userId);
             userMapper.updateStatus(1);
             return ACTIVATION_SUCCESS;
         }else {
@@ -116,12 +122,13 @@ public class UserServiceImpl implements UserService, CommunityConstant {
 
     @Override
     public int updatePassword(Integer id, String password) {
+        clearCache(id);
         return userMapper.updatePassword(id,password);
     }
 
     @Override
     public Map<String, Object> checkPassword(User user, String oldPassword,String newPassword) {
-        Map<String,Object> map = new HashMap<>();
+        Map<String,Object> map = new HashMap<>(16);
         //对密码进行判定
         if(newPassword.length()<8){
             map.put("passwordLengthMsg","密码长度不能小于8！");
@@ -149,6 +156,7 @@ public class UserServiceImpl implements UserService, CommunityConstant {
 
     @Override
     public int updateUserHeader(int userId, String headerUrl) {
+        clearCache(userId);
         return userMapper.updateHeaderUrl(userId,headerUrl);
     }
 
@@ -187,14 +195,21 @@ public class UserServiceImpl implements UserService, CommunityConstant {
         loginTicket.setStatus(1);
         loginTicket.setTicket(CommunityUtil.getId());
         loginTicket.setExpired(new Date(System.currentTimeMillis() + expiredSecond* 1000L));
-        loginTicketMapper.addLoginTicket(loginTicket);
+        String redisKey = RedisKeyUtil.getTicketKey(loginTicket.getTicket());
+        redisTemplate.opsForValue().set(redisKey,loginTicket);
+
 
         map.put("ticket",loginTicket.getTicket());
         return map;
     }
 
     public void logout(String ticket){
-        loginTicketMapper.updateStatus(ticket,0);
+        String redisKey = RedisKeyUtil.getTicketKey(ticket);
+        LoginTicket loginTicket = (LoginTicket) redisTemplate.opsForValue().get(redisKey);
+        if (loginTicket!=null) {
+            loginTicket.setStatus(0);
+            redisTemplate.opsForValue().set(redisKey,loginTicket);
+        }
     }
 
     @Override
@@ -204,6 +219,39 @@ public class UserServiceImpl implements UserService, CommunityConstant {
 
     @Override
     public LoginTicket getLoginTicket(String ticket) {
-        return loginTicketMapper.getByTicket(ticket);
+        String redisKey = RedisKeyUtil.getTicketKey(ticket);
+        LoginTicket loginTicket = (LoginTicket) redisTemplate.opsForValue().get(redisKey);
+        return loginTicket;
+    }
+
+    /**
+     * 从缓存中取用户信息
+     * @param userId 用户的id
+     * @return 该用户信息
+     */
+    private User getCache(Integer userId){
+        String redisKey = RedisKeyUtil.getUserKey(userId);
+        return (User) redisTemplate.opsForValue().get(redisKey);
+    }
+
+    /**
+     * 缓存中没有时，从数据库中找到数据并存入缓存中
+     * @param userId 要查找的用户id
+     * @return 用户信息
+     */
+    private User getFromDb(Integer userId){
+        User user = userMapper.getUserById(userId);
+        String redisKey = RedisKeyUtil.getUserKey(userId);
+        redisTemplate.opsForValue().set(redisKey,user,3600, TimeUnit.SECONDS);
+        return user;
+    }
+
+    /**
+     * 当信息更改时清理缓存中的用户信息
+     * @param userId 要清理的用户id
+     */
+    private void clearCache(Integer userId){
+        String redisKey = RedisKeyUtil.getUserKey(userId);
+        redisTemplate.delete(redisKey);
     }
 }

@@ -15,6 +15,7 @@ import com.class1.boot.util.MailClient;
 import com.class1.boot.util.SensitiveFilter;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,6 +35,7 @@ import java.util.Map;
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = MainApplication.class)
 @SpringBootTest
+@Slf4j
 public class SkylineForumTest {
     @Autowired
     private LoginTicketMapper loginTicketMapper;
@@ -55,9 +57,11 @@ public class SkylineForumTest {
     public void testGetUser(){
         User user = userMapper.getUserByEmail("2");
         System.out.println(user);
+        log.info("这是正常问题");
     }
 
     @Test
+
     public void testInsert(){
         User user = new User();
         user.setUsername("12");

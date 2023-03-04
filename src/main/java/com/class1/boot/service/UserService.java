@@ -5,6 +5,9 @@ import com.class1.boot.pojo.User;
 
 import java.util.Map;
 
+/**
+ * @author hua'wei
+ */
 public interface UserService {
     /**
      * 根据id得到用户信息

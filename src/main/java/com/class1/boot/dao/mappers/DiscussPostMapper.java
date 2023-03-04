@@ -18,4 +18,6 @@ public interface DiscussPostMapper {
     DiscussPost getDiscussPostById(Integer id);
 
     int updateCommentCount(Integer id,Integer commentCount);
+
+    List<DiscussPost> getDiscussPosts();
 }

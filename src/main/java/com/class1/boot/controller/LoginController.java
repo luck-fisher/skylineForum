@@ -5,10 +5,15 @@ import cn.hutool.captcha.ICaptcha;
 import com.class1.boot.pojo.User;
 import com.class1.boot.service.UserService;
 import com.class1.boot.util.CommunityConstant;
+import com.class1.boot.util.CommunityUtil;
+import com.class1.boot.util.CookieUtil;
+import com.class1.boot.util.RedisKeyUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -19,10 +24,13 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Controller
 public class LoginController implements CommunityConstant {
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
+    @Autowired
+    private RedisTemplate redisTemplate;
     @Autowired
     private UserService userService;
 
@@ -54,8 +62,11 @@ public class LoginController implements CommunityConstant {
         }
         return "site/register";
     }
-    //http://localhost:8080/SkylineForum/activation/18/c905c1d3642d4801bf1e1af5094f16b4
-    //http://localhost:8080/SkylineForum/activation/{id}/{code}
+
+    /**
+     *<a href="http://localhost:8080/SkylineForum/activation/18/c905c1d3642d4801bf1e1af5094f16b4">...</a>
+     *<a href="http://localhost:8080/SkylineForum/activation/{id}/{code}">...</a>
+     */
     @GetMapping("/activation/{id}/{code}")
     public String activation(@PathVariable("code") String code, @PathVariable("id") Integer id,Model model){
         int result = userService.activation(id, code);
@@ -73,9 +84,17 @@ public class LoginController implements CommunityConstant {
     }
 
     @GetMapping("/captcha")
-    public void getCaptcha(HttpServletResponse response, HttpSession session) {
+    public void getCaptcha(HttpServletResponse response) {
         ICaptcha captcha = CaptchaUtil.createLineCaptcha(200, 100);
-        session.setAttribute("captcha",captcha.getCode());
+
+        String captchaOwn = CommunityUtil.getId();
+        Cookie cookie = new Cookie("captchaOwn",captchaOwn);
+        cookie.setMaxAge(60);
+        cookie.setPath(contextPath);
+        response.addCookie(cookie);
+        String redisKey = RedisKeyUtil.getCaptchaKey(captchaOwn);
+        redisTemplate.opsForValue().set(redisKey,captcha.getCode(),60, TimeUnit.SECONDS);
+
         response.setContentType("image/png");
         try {
             ServletOutputStream os = response.getOutputStream();
@@ -87,18 +106,23 @@ public class LoginController implements CommunityConstant {
     }
 
     @PostMapping("/login")
-    public String login(String username,String password,Boolean rememberme,String code,HttpSession session,
-                        Model model,HttpServletResponse response){
+    public String login(String username,String password,Boolean rememberme,String code,
+                        Model model,HttpServletResponse response,@CookieValue("captchaOwn") String captchaOwn){
         //判断验证码是否正确
-        String captcha = session.getAttribute("captcha").toString();
-        if(captcha.isBlank()||code.isBlank()||!captcha.equalsIgnoreCase(code)){
+        String captcha = null;
+        if (StringUtils.isNoneBlank(captchaOwn)) {
+            String redisKey = RedisKeyUtil.getCaptchaKey(captchaOwn);
+            captcha = (String) redisTemplate.opsForValue().get(redisKey);
+        }
+        if(StringUtils.isBlank(captcha)||StringUtils.isBlank(code)||!captcha.equalsIgnoreCase(code)){
             model.addAttribute("codeMsg","验证码错误");
             return "site/login";
         }
         //判断账号和密码是否正确
         int expiredSecond = rememberme!=null?REMEMBER_EXPIRED_TIME:DEFAULT_EXPIRED_TIME;
         Map<String, Object> map = userService.login(username, password, expiredSecond);
-        if(map.containsKey("ticket")){
+        String loginTicket = "ticket";
+        if(map.containsKey(loginTicket)){
             Cookie cookie = new Cookie("ticket",map.get("ticket").toString());
             cookie.setPath(contextPath);
             cookie.setMaxAge(expiredSecond);

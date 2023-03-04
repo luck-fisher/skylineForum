@@ -15,4 +15,7 @@ public interface CommentMapper {
     int getCommentCount(Integer entityId);
     int getReplyCount(Integer entityId);
     int insertComment(Comment comment);
+    @MapKey("comment")
+    List<Map<String,Object>> getUserAllComment(Integer userId);
+    Comment getCommentById(Integer id);
 }

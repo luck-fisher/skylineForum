@@ -45,4 +45,16 @@
         and entity_type = 2
         and entity_id = #{entityId}
     </select>
+    <select id="getUserAllComment" resultType="java.util.Map">
+        select <include refid="selectColumn"></include>
+        from comment
+        where status = 0
+        and entity_type = 1
+        and user_id = #{userId}
+    </select>
+    <select id="getCommentById" resultType="com.class1.boot.pojo.Comment">
+        select <include refid="selectColumn"></include>
+        from comment
+        where id = #{id}
+    </select>
 </mapper>

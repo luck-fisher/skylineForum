@@ -28,18 +28,43 @@ public class CommentServiceImpl implements CommentService {
     @Autowired
     private SensitiveFilter sensitiveFilter;
 
-    @Transactional(isolation = Isolation.READ_COMMITTED,propagation = Propagation.REQUIRED)
+    @Transactional(isolation = Isolation.READ_COMMITTED,propagation = Propagation.REQUIRED,rollbackFor = Exception.class)
     @Override
     public int addComment(Comment comment) {
         comment.setContent(HtmlUtils.htmlEscape(comment.getContent()));
         comment.setContent(sensitiveFilter.filterSensitiveKeyword(comment.getContent()));
 
         if(comment.getEntityType()==1){
-            int count = commentMapper.getCommentCount(comment.getId());
-            discussPostMapper.updateCommentCount(comment.getId(),count);
+            int count = commentMapper.getCommentCount(comment.getEntityId());
+            discussPostMapper.updateCommentCount(comment.getEntityId(),count);
         }
 
         return commentMapper.insertComment(comment);
+    }
+
+    /**
+     * 得到用户全部的历史评论和回复
+     *
+     * @param userId  用户的id
+     * @param pageNum 页码
+     * @return 分页后的List集合
+     */
+    @Override
+    public PageInfo<Map<String, Object>> getUserAllComment(Integer userId, Integer pageNum) {
+        PageHelper.startPage(pageNum,10);
+        List<Map<String, Object>> userAllComment = commentMapper.getUserAllComment(userId);
+        return new PageInfo<>(userAllComment,5);
+    }
+
+    /**
+     * 通过id得到评论
+     *
+     * @param id 评论的id
+     * @return 查询得到的评论
+     */
+    @Override
+    public Comment getCommentById(Integer id) {
+        return commentMapper.getCommentById(id);
     }
 
     @Override

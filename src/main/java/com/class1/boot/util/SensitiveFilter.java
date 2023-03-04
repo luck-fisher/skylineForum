@@ -18,7 +18,7 @@ import java.util.Map;
 public class SensitiveFilter {
     private static final Logger logger = LoggerFactory.getLogger(SensitiveFilter.class);
 
-    private  String REPLACE_WORD = "***";
+    private final String REPLACE_WORD = "***";
     //根节点
     private TireNode rootNode = new TireNode();
 
@@ -76,7 +76,7 @@ public class SensitiveFilter {
             return sonNodes.get(c);
         }
     }
-
+    //过滤敏感词
     public  String filterSensitiveKeyword(String text){
         if(StringUtils.isBlank(text)){
             return null;
