@@ -8,10 +8,11 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 import java.util.Date;
 
 @Document(indexName = "discuss_post")
+
 public class DiscussPost {
     @Id
     private Integer id;
-    @Field(type = FieldType.Integer)
+    @Field(name = "userId",type = FieldType.Integer)
     private Integer userId;
     @Field(type = FieldType.Text,analyzer = "ik_max_word",searchAnalyzer = "ik_smart")
     private String title;
