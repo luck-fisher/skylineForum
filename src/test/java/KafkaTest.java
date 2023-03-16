@@ -1,6 +1,5 @@
 import com.class1.boot.MainApplication;
 import com.class1.boot.service.impl.KafkaConsumers;
-import com.class1.boot.service.impl.KafkaProducers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;

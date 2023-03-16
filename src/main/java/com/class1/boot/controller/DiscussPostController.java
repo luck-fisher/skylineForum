@@ -2,8 +2,10 @@ package com.class1.boot.controller;
 
 
 import cn.hutool.core.convert.ConverterRegistry;
+import com.class1.boot.event.EventProducer;
 import com.class1.boot.pojo.Comment;
 import com.class1.boot.pojo.DiscussPost;
+import com.class1.boot.pojo.Event;
 import com.class1.boot.pojo.User;
 import com.class1.boot.service.CommentService;
 import com.class1.boot.service.DiscussPostService;
@@ -48,6 +50,7 @@ public class DiscussPostController implements CommunityConstant {
         if(user==null){
             return CommunityUtil.getJsonString(403,"您还没有登录哦！");
         }
+        //生成帖子
         DiscussPost post = new DiscussPost();
         post.setUserId(user.getId());
         post.setTitle(title);
@@ -56,6 +59,16 @@ public class DiscussPostController implements CommunityConstant {
         post.setType(0);
         post.setCreateTime(new Date());
         discussPostService.insertDiscussPost(post);
+
+        //触发发帖事件
+        Event event = new Event()
+                .setTopic(TOPIC_POST)
+                .setUserId(user.getId())
+                .setEntityId(post.getId())
+                .setEntityType(ENTITY_POST);
+
+        EventProducer eventProducer = new EventProducer();
+        eventProducer.fireEvent(event);
 
         return CommunityUtil.getJsonString(0,"发布成功");
     }

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD com.Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.class1.boot.dao.mappers.LoginTicketMapper">
+    <sql id="loginTicketAllColum">
+        id,user_id,ticket,status,expired
+    </sql>
+
+    <sql id="loginTicketInsertColum">
+        user_id,ticket,status,expired
+    </sql>
+
+    <insert id="addLoginTicket" parameterType="LoginTicket" keyProperty="id">
+        Insert into
+        login_ticket(<include refid="loginTicketInsertColum"></include>)
+        values(#{userId},#{ticket},#{status},#{expired})
+    </insert>
+    <update id="updateStatus">
+        update login_ticket
+        set status = #{status}
+        where ticket = #{ticket}
+    </update>
+    <select id="getByTicket" resultType="com.class1.boot.pojo.LoginTicket">
+        select <include refid="loginTicketAllColum"></include>
+        from login_ticket
+        where ticket = #{ticket}
+    </select>
+</mapper>

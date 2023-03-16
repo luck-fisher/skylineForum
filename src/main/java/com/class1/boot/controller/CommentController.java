@@ -38,7 +38,7 @@ public class CommentController implements CommunityConstant {
         comment.setStatus(0);
         comment.setUserId(hostHolder.getUser().getId());
         commentService.addComment(comment);
-        //产生事件
+        //触发评论事件
         Event event = new Event();
         event.setUserId(hostHolder.getUser().getId())
                 .setTopic(TOPIC_COMMENT)
@@ -53,6 +53,14 @@ public class CommentController implements CommunityConstant {
             Comment target = commentService.getCommentById(comment.getEntityId());
             event.setEntityCreateId(target.getUserId());
         }
+        eventProducer.fireEvent(event);
+        //触发更新帖子事件
+         event = new Event()
+                .setTopic(TOPIC_POST)
+                .setUserId(hostHolder.getUser().getId())
+                .setEntityId(postId)
+                .setEntityType(ENTITY_POST);
+
         eventProducer.fireEvent(event);
 
         return "redirect:/discussPost/detail/"+postId;

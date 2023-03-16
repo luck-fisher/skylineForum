@@ -1,0 +1,58 @@
+server:
+  servlet:
+    context-path: /SkylineForum
+
+spring:
+  elasticsearch:
+    uris: localhost:9200
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: 123456
+    url: jdbc:mysql://localhost:3306/skyline forum
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      maximum-pool-size: 15
+      minimum-idle: 5
+      idle-timeout: 30000
+  mail:
+    host: smtp.qq.com
+    port: 465
+    username: 2376349476@qq.com
+    password: diwkgbttqmvpdiaf
+    protocol: smtps
+    properties:
+      mail:
+        smtp:
+          ssl:
+            enable: true
+  redis:
+    host: localhost
+    port: 6379
+    database: 1
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: test-consumer-group
+      enable-auto-commit: true
+      auto-commit-interval: 3000
+mybatis:
+    mapper-locations: classpath:mappers/*.xml
+    type-aliases-package: com.class1.boot.pojo
+    configuration:
+      map-underscore-to-camel-case: true
+      use-generated-keys: true
+pagehelper:
+  helper-dialect: mysql
+  reasonable: true
+  support-methods-arguments: true
+  params: count=countSql
+
+SkylineForum:
+  path:
+    domain: http://localhost:8080
+    upload: C:/Users/hua'wei/Desktop/JAVAWEB
+
+logging:
+  level:
+    com.class1.boot: debug
