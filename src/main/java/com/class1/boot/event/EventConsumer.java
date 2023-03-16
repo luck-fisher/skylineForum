@@ -1,17 +1,21 @@
 package com.class1.boot.event;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.class1.boot.dao.elastic.DiscussPostRepository;
 import com.class1.boot.pojo.Event;
 import com.class1.boot.pojo.Message;
+import com.class1.boot.service.DiscussPostService;
 import com.class1.boot.service.MessageService;
 import com.class1.boot.util.CommunityConstant;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,8 +27,14 @@ import java.util.Map;
 public class EventConsumer implements CommunityConstant {
     private static final Logger logger = LoggerFactory.getLogger(EventConsumer.class);
 
-    @Autowired
+    @Resource
     private MessageService messageService;
+
+    @Resource
+    DiscussPostRepository discussPostRepository;
+
+    @Resource
+    DiscussPostService discussPostService;
 
     /**
      * 处理生产者产生的事件
@@ -61,5 +71,21 @@ public class EventConsumer implements CommunityConstant {
         }
         message.setContent(JSONObject.toJSONString(content));
         messageService.addMessage(message);
+    }
+
+    @KafkaListener(topics = TOPIC_POST)
+    public void handlePutPost(ConsumerRecord record){
+        //收到的通知为空，写入日志，返回
+        if (record == null||record.value() == null) {
+            logger.error("发送消息为空！");
+            return;
+        }
+        //转换后的事件为空，说明格式错误，写入日志，返回
+        Event event = JSONObject.parseObject(record.value().toString(), Event.class);
+        if (event == null){
+            logger.error("消息格式错误！");
+            return;
+        }
+        discussPostRepository.save(discussPostService.getDiscussPostById(event.getEntityId()));
     }
 }

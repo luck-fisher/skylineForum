@@ -67,6 +67,10 @@ public interface CommunityConstant {
     String TOPIC_FOLLOW = "follow";
 
     /**
+     * kafka主题：发帖
+     */
+    String TOPIC_POST = "post";
+    /**
      * 系统用户的id
      */
     Integer SYSTEM_ID = 1;

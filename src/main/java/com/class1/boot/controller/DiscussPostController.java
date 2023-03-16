@@ -2,19 +2,24 @@ package com.class1.boot.controller;
 
 
 import cn.hutool.core.convert.ConverterRegistry;
+import com.class1.boot.event.EventConsumer;
+import com.class1.boot.event.EventProducer;
 import com.class1.boot.pojo.Comment;
 import com.class1.boot.pojo.DiscussPost;
+import com.class1.boot.pojo.Event;
 import com.class1.boot.pojo.User;
 import com.class1.boot.service.CommentService;
 import com.class1.boot.service.DiscussPostService;
 import com.class1.boot.service.LikeService;
 import com.class1.boot.service.UserService;
+import com.class1.boot.service.impl.KafkaProducers;
 import com.class1.boot.util.CommunityConstant;
 import com.class1.boot.util.CommunityUtil;
 import com.class1.boot.util.HostHolder;
 import com.class1.boot.util.RedisKeyUtil;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -48,6 +53,7 @@ public class DiscussPostController implements CommunityConstant {
         if(user==null){
             return CommunityUtil.getJsonString(403,"您还没有登录哦！");
         }
+        //生成帖子
         DiscussPost post = new DiscussPost();
         post.setUserId(user.getId());
         post.setTitle(title);
@@ -56,6 +62,16 @@ public class DiscussPostController implements CommunityConstant {
         post.setType(0);
         post.setCreateTime(new Date());
         discussPostService.insertDiscussPost(post);
+
+        //触发发帖事件
+        Event event = new Event()
+                .setTopic(TOPIC_POST)
+                .setUserId(user.getId())
+                .setEntityId(post.getId())
+                .setEntityType(ENTITY_POST);
+
+        EventProducer eventProducer = new EventProducer();
+        eventProducer.fireEvent(event);
 
         return CommunityUtil.getJsonString(0,"发布成功");
     }
