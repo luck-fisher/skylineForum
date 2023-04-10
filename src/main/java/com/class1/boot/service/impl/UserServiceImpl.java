@@ -12,6 +12,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -41,6 +44,9 @@ public class UserServiceImpl implements UserService, CommunityConstant {
 
     @Value("${server.servlet.context-path}")
     private String contextPath;
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
     @Override
     public User getUserById(Integer id) {
@@ -160,6 +166,12 @@ public class UserServiceImpl implements UserService, CommunityConstant {
         return userMapper.updateHeaderUrl(userId,headerUrl);
     }
 
+    /**
+     * 登录验证
+     * @param username 用户输入的用户名
+     * @param password 用户输入的密码
+     * @param expiredSecond 用户的登录凭证时长
+     */
     @Override
     public Map<String, Object> login(String username,String password,int expiredSecond) {
         Map<String, Object> map = new HashMap<>();
@@ -174,6 +186,11 @@ public class UserServiceImpl implements UserService, CommunityConstant {
         }
 
         //信息验证
+
+        //获取得到user的authentication对象
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, password);
+        Authentication authenticate = authenticationManager.authenticate(authenticationToken);
+
         User user = userMapper.getUserByUsername(username);
         if(user==null){
             map.put("usernameMsg","该用户不存在");
